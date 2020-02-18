@@ -55,6 +55,10 @@ func main() {
 	}
 	f2.Read()
 
+	if f1.info.Size() != f2.info.Size() {
+		log.Fatal("files must be the same size")
+	}
+
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
