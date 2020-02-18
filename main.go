@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+	"os"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
@@ -37,13 +38,18 @@ func main() {
 		f2strings[y] = make([]string, columns)
 	}
 
-	f1, err := openCreamyFile("cat.png", pageSize)
+	if len(os.Args) < 3 {
+		fmt.Printf("Usage: %s <file1> <file2>\n", os.Args[0])
+		os.Exit(0)
+	}
+
+	f1, err := openCreamyFile(os.Args[1], pageSize)
 	if err != nil {
 		log.Fatalf("failed to open f1: %v", err)
 	}
 	f1.Read()
 
-	f2, err := openCreamyFile("bat.png", pageSize)
+	f2, err := openCreamyFile(os.Args[2], pageSize)
 	if err != nil {
 		log.Fatalf("failed to open f1: %v", err)
 	}
