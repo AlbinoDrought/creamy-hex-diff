@@ -13,6 +13,25 @@ type creamyFile struct {
 	buffer []byte
 }
 
+func (f *creamyFile) IsAtBeginning() bool {
+	return f.offset <= 0
+}
+
+func (f *creamyFile) lastBufferPos() int64 {
+	pos := f.info.Size() - int64(len(f.buffer))
+	pos = pos - (pos % int64(len(f.buffer)))
+	return pos
+}
+
+func (f *creamyFile) IsAtEnd() bool {
+	return f.offset >= f.lastBufferPos()
+}
+
+func (f *creamyFile) At(offset int64) (int, error) {
+	f.offset = offset
+	return f.Read()
+}
+
 func (f *creamyFile) Read() (int, error) {
 	f.source.Seek(f.offset, io.SeekStart)
 	return f.source.Read(f.buffer)
@@ -24,8 +43,7 @@ func (f *creamyFile) Start() (int, error) {
 }
 
 func (f *creamyFile) End() (int, error) {
-	f.offset = f.info.Size() - int64(len(f.buffer))
-	f.offset = f.offset - (f.offset % int64(len(f.buffer)))
+	f.offset = f.lastBufferPos()
 	return f.Read()
 }
 
@@ -39,7 +57,7 @@ func (f *creamyFile) Last(bytes int64) (int, error) {
 
 func (f *creamyFile) Next(bytes int64) (int, error) {
 	f.offset += bytes
-	if f.offset+int64(len(f.buffer)) > f.info.Size() {
+	if f.IsAtEnd() {
 		return f.End()
 	}
 	return f.Read()
