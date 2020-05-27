@@ -8,6 +8,7 @@ import (
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
+	tb "github.com/nsf/termbox-go"
 )
 
 func hexify(buffer []byte, strings [][]string) {
@@ -62,6 +63,7 @@ func main() {
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
+	tb.SetInputMode(tb.InputEsc)
 	defer ui.Close()
 
 	left := 0
