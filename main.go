@@ -61,10 +61,6 @@ func main() {
 	}
 	f2.Read()
 
-	if f1.info.Size() != f2.info.Size() {
-		log.Fatal("files must be the same size")
-	}
-
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
@@ -114,8 +110,17 @@ func main() {
 		hexify(f1.buffer, f1strings, f1.readDataLength)
 		hexify(f2.buffer, f2strings, f2.readDataLength)
 
-		for bufferPos = 0; bufferPos < f1.readDataLength; bufferPos++ {
-			if f1.buffer[bufferPos] != f2.buffer[bufferPos] {
+		minLength := f1.readDataLength
+		if f2.readDataLength < minLength {
+			minLength = f2.readDataLength
+		}
+		maxLength := f1.readDataLength
+		if f2.readDataLength > maxLength {
+			maxLength = f2.readDataLength
+		}
+
+		for bufferPos = 0; bufferPos < maxLength; bufferPos++ {
+			if f1.buffer[bufferPos] != f2.buffer[bufferPos] || bufferPos >= minLength {
 				bufferY = bufferPos / rows
 				bufferX = bufferPos - (bufferY * rows)
 				f1strings[bufferY][bufferX] = "[" + f1strings[bufferY][bufferX] + "](fg:red)"
@@ -150,10 +155,14 @@ func main() {
 				break
 			case "<Left>":
 				found := false
-				for !found && !f1.IsAtBeginning() {
+				for !found && !f1.IsAtBeginning() && !f2.IsAtBeginning() {
 					f1.Last(int64(pageSize))
 					f2.Last(int64(pageSize))
-					for bufferPos = 0; bufferPos < f1.readDataLength; bufferPos++ {
+					minLength := f1.readDataLength
+					if f2.readDataLength < minLength {
+						minLength = f2.readDataLength
+					}
+					for bufferPos = 0; bufferPos < minLength; bufferPos++ {
 						if f1.buffer[bufferPos] != f2.buffer[bufferPos] {
 							found = true
 							break
@@ -164,10 +173,14 @@ func main() {
 				break
 			case "<Right>":
 				found := false
-				for !found && !f1.IsAtEnd() {
+				for !found && !f1.IsAtEnd() && !f2.IsAtEnd() {
 					f1.Next(int64(pageSize))
 					f2.Next(int64(pageSize))
-					for bufferPos = 0; bufferPos < f1.readDataLength; bufferPos++ {
+					minLength := f1.readDataLength
+					if f2.readDataLength < minLength {
+						minLength = f2.readDataLength
+					}
+					for bufferPos = 0; bufferPos < minLength; bufferPos++ {
 						if f1.buffer[bufferPos] != f2.buffer[bufferPos] {
 							found = true
 							break
