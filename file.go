@@ -6,11 +6,12 @@ import (
 )
 
 type creamyFile struct {
-	path   string
-	source *os.File
-	info   os.FileInfo
-	offset int64
-	buffer []byte
+	path           string
+	source         *os.File
+	info           os.FileInfo
+	offset         int64
+	readDataLength int
+	buffer         []byte
 }
 
 func (f *creamyFile) IsAtBeginning() bool {
@@ -19,8 +20,7 @@ func (f *creamyFile) IsAtBeginning() bool {
 
 func (f *creamyFile) lastBufferPos() int64 {
 	pos := f.info.Size() - int64(len(f.buffer))
-	pos = pos - (pos % int64(len(f.buffer)))
-	return pos
+	return pos + (0x10 - (pos % int64(0x10))) // ceil to 0x10 offset
 }
 
 func (f *creamyFile) IsAtEnd() bool {
@@ -34,7 +34,9 @@ func (f *creamyFile) At(offset int64) (int, error) {
 
 func (f *creamyFile) Read() (int, error) {
 	f.source.Seek(f.offset, io.SeekStart)
-	return f.source.Read(f.buffer)
+	length, err := f.source.Read(f.buffer)
+	f.readDataLength = length
+	return length, err
 }
 
 func (f *creamyFile) Start() (int, error) {

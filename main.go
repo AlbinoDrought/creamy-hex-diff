@@ -11,10 +11,15 @@ import (
 	tb "github.com/nsf/termbox-go"
 )
 
-func hexify(buffer []byte, strings [][]string) {
+func hexify(buffer []byte, strings [][]string, length int) {
 	for y, row := range strings {
 		for x := range row {
-			strings[y][x] = hex.EncodeToString(buffer[x+y*len(row) : x+y*len(row)+1])
+			offset := x + y*len(row)
+			if offset >= length {
+				strings[y][x] = ""
+			} else {
+				strings[y][x] = hex.EncodeToString(buffer[x+y*len(row) : x+y*len(row)+1])
+			}
 		}
 	}
 }
@@ -106,10 +111,10 @@ func main() {
 	render := func() {
 		f2.At(f1.offset)
 
-		hexify(f1.buffer, f1strings)
-		hexify(f2.buffer, f2strings)
+		hexify(f1.buffer, f1strings, f1.readDataLength)
+		hexify(f2.buffer, f2strings, f2.readDataLength)
 
-		for bufferPos = 0; bufferPos < len(f1.buffer); bufferPos++ {
+		for bufferPos = 0; bufferPos < f1.readDataLength; bufferPos++ {
 			if f1.buffer[bufferPos] != f2.buffer[bufferPos] {
 				bufferY = bufferPos / rows
 				bufferX = bufferPos - (bufferY * rows)
@@ -148,7 +153,7 @@ func main() {
 				for !found && !f1.IsAtBeginning() {
 					f1.Last(int64(pageSize))
 					f2.Last(int64(pageSize))
-					for bufferPos = 0; bufferPos < len(f1.buffer); bufferPos++ {
+					for bufferPos = 0; bufferPos < f1.readDataLength; bufferPos++ {
 						if f1.buffer[bufferPos] != f2.buffer[bufferPos] {
 							found = true
 							break
@@ -162,7 +167,7 @@ func main() {
 				for !found && !f1.IsAtEnd() {
 					f1.Next(int64(pageSize))
 					f2.Next(int64(pageSize))
-					for bufferPos = 0; bufferPos < len(f1.buffer); bufferPos++ {
+					for bufferPos = 0; bufferPos < f1.readDataLength; bufferPos++ {
 						if f1.buffer[bufferPos] != f2.buffer[bufferPos] {
 							found = true
 							break
